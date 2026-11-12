@@ -1,4 +1,4 @@
-import { useEffect, useRef } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import AOS from 'aos'
 import 'aos/dist/aos.css'
 import heroVideo from '../assets/hero/hero.mp4'
@@ -7,6 +7,8 @@ import { heroContent, socialLinks } from '../data/portfolioData'
 
 const Hero = ({ isPreloaderDone }) => {
   const videoRef = useRef(null)
+  const [isAudioActive, setIsAudioActive] = useState(false)
+  const [audioBlocked, setAudioBlocked] = useState(false)
 
   // Initialize AOS
   useEffect(() => {
@@ -20,6 +22,24 @@ const Hero = ({ isPreloaderDone }) => {
     }
   }, [])
 
+  // Explicit audio playback trigger
+  const playVoiceGreeting = () => {
+    const video = videoRef.current
+    if (!video) return
+    video.currentTime = 0
+    video.muted = false
+    video.volume = 1.0
+    video
+      .play()
+      .then(() => {
+        setIsAudioActive(true)
+        setAudioBlocked(false)
+      })
+      .catch((err) => {
+        console.warn('Playback error:', err)
+      })
+  }
+
   // Start video ONLY after preloader loading finishes
   useEffect(() => {
     const video = videoRef.current
@@ -31,7 +51,7 @@ const Hero = ({ isPreloaderDone }) => {
       return
     }
 
-    // Preloader is done — start cleanly from frame 0 with sound
+    // Preloader is done — attempt unmuted playback from 0:00
     video.currentTime = 0
     video.volume = 1.0
     video.muted = false
@@ -39,30 +59,35 @@ const Hero = ({ isPreloaderDone }) => {
     video
       .play()
       .then(() => {
-        // Video playing with audio
+        setIsAudioActive(true)
+        setAudioBlocked(false)
       })
       .catch(() => {
-        // If browser blocks unmuted autoplay, start muted and unmute on first gesture
+        // Browser blocked audio autoplay without prior user interaction
+        setAudioBlocked(true)
+        setIsAudioActive(false)
         video.muted = true
         video.play().catch(() => {})
 
-        const unmuteOnInteraction = () => {
-          if (video) {
-            video.muted = false
-            video.volume = 1.0
+        // The instant the user clicks or taps anywhere on the page, restart with audio!
+        const triggerAudioOnFirstGesture = () => {
+          if (videoRef.current) {
+            videoRef.current.currentTime = 0
+            videoRef.current.muted = false
+            videoRef.current.volume = 1.0
+            videoRef.current
+              .play()
+              .then(() => {
+                setIsAudioActive(true)
+                setAudioBlocked(false)
+              })
+              .catch(() => {})
           }
-          window.removeEventListener('click', unmuteOnInteraction)
-          window.removeEventListener('scroll', unmuteOnInteraction)
-          window.removeEventListener('touchstart', unmuteOnInteraction)
-          window.removeEventListener('keydown', unmuteOnInteraction)
-          window.removeEventListener('mousemove', unmuteOnInteraction)
         }
 
-        window.addEventListener('click', unmuteOnInteraction, { once: true })
-        window.addEventListener('scroll', unmuteOnInteraction, { once: true })
-        window.addEventListener('touchstart', unmuteOnInteraction, { once: true })
-        window.addEventListener('keydown', unmuteOnInteraction, { once: true })
-        window.addEventListener('mousemove', unmuteOnInteraction, { once: true })
+        window.addEventListener('click', triggerAudioOnFirstGesture, { once: true })
+        window.addEventListener('touchstart', triggerAudioOnFirstGesture, { once: true })
+        window.addEventListener('keydown', triggerAudioOnFirstGesture, { once: true })
       })
   }, [isPreloaderDone])
 
@@ -80,6 +105,7 @@ const Hero = ({ isPreloaderDone }) => {
           preload="auto"
           poster={heroPoster}
           onEnded={() => {
+            setIsAudioActive(false)
             const video = videoRef.current
             if (video) {
               video.pause()
@@ -226,6 +252,26 @@ const Hero = ({ isPreloaderDone }) => {
           {heroContent.ctaSecondary.text}
         </a>
 
+        {/* Voice Greeting Play/Replay button */}
+        <button
+          onClick={playVoiceGreeting}
+          type="button"
+          aria-label="Play Voice Introduction"
+          className="px-6 py-3 rounded-full bg-black/60 hover:bg-black text-white border border-white/40 backdrop-blur-md font-semibold transition-all duration-300 hover:scale-105 inline-flex items-center space-x-2 shadow-lg cursor-pointer"
+        >
+          {isAudioActive ? (
+            <>
+              <span className="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-pulse" />
+              <span>🔊 Voice Playing (Replay)</span>
+            </>
+          ) : (
+            <>
+              <span className="w-2.5 h-2.5 rounded-full bg-amber-400 animate-ping" />
+              <span>🔊 Hear Voice Greeting</span>
+            </>
+          )}
+        </button>
+
         {/* Resume Download CTA */}
         {heroContent.ctaResume && heroContent.ctaResume.href && (
           <a
@@ -250,6 +296,25 @@ const Hero = ({ isPreloaderDone }) => {
       </div>
     </div>
   </div>
+
+  {/* Subtle Floating Banner when Browser blocks unmuted autoplay */}
+  {audioBlocked && (
+    <div
+      data-aos="fade-up"
+      onClick={playVoiceGreeting}
+      className="absolute bottom-16 md:bottom-8 right-6 md:right-10 z-30 bg-black/85 hover:bg-black text-white px-5 py-3 rounded-2xl border border-white/20 backdrop-blur-md shadow-2xl cursor-pointer flex items-center space-x-3 transition-all hover:scale-105 animate-pulse"
+    >
+      <div className="w-8 h-8 rounded-full bg-red-600 flex items-center justify-center shrink-0">
+        <svg className="w-4 h-4 fill-white" viewBox="0 0 24 24">
+          <path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02zM14 3.23v2.06c2.89.86 5 3.54 5 6.71s-2.11 5.85-5 6.71v2.06c4.01-.91 7-4.49 7-8.77s-2.99-7.86-7-8.77z"/>
+        </svg>
+      </div>
+      <div>
+        <p className="text-xs font-bold leading-tight">Tap to hear Divya speak</p>
+        <p className="text-[10px] text-white/70">Audio was muted by browser</p>
+      </div>
+    </div>
+  )}
 
   {/* Bouncing Down-Arrow Scroll Indicator */}
   <div className="hidden md:block absolute bottom-6 left-1/2 -translate-x-1/2 z-20 animate-bounce pointer-events-none text-white">

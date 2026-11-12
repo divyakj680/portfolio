@@ -1,5 +1,7 @@
 # Divya K J — Personal Developer Portfolio
 
+> **🌐 Live Website:** [https://portfolio-fkkh.vercel.app/](https://portfolio-fkkh.vercel.app/)
+
 A modern, responsive portfolio website showcasing Java Full Stack projects, technical skills, interactive 3D LinkedIn scanner, and experience.
 
 ---
