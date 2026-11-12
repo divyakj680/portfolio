@@ -1,8 +1,6 @@
-# Divya K J — Portfolio
+# Divya K J — Personal Developer Portfolio
 
-A high-performance, single-page developer portfolio showcasing full-stack Java projects, technical skills, and experience.
-
-**Live site:** https://myportfolio-livid-gamma-83.vercel.app
+A modern, responsive portfolio website showcasing Java Full Stack projects, technical skills, interactive 3D LinkedIn scanner, and experience.
 
 ---
 
@@ -12,9 +10,8 @@ A high-performance, single-page developer portfolio showcasing full-stack Java p
 - **Vite**
 - **Tailwind CSS 4**
 - **Framer Motion**
-- **AOS**
-- **EmailJS**
-- **WebGL**
+- **AOS (Animate on Scroll)**
+- **WebGL Splash Interaction**
 
 ---
 
@@ -35,18 +32,17 @@ npm run build
 
 ---
 
-## 🔐 Environment Variables
+## 🎓 Education & Certifications
 
-To enable contact form delivery through EmailJS, create a `.env.local` file in the project root with the following keys:
-
-- `VITE_EMAILJS_SERVICE_ID`
-- `VITE_EMAILJS_TEMPLATE_ID`
-- `VITE_EMAILJS_PUBLIC_KEY`
-
-If these variables are omitted, the contact form automatically falls back to pre-filling the user's default email client.
+- **B.E. Computer Science Engineering** (CGPA: 8.8, 2023–2027) — R. R. Institute of Technology, Bengaluru
+- **Java Full Stack Development** — Tap Academy & Rooman Technologies
+- **TCS iON National Qualifier Test (NQT)**
+- **NASSCOM / Skill India Grade A Certified**
 
 ---
 
-## 🎓 Credit
+## 📬 Contact
 
-Built during the placement training program at [TAP Academy](https://thetapacademy.com/) (full-stack development, AI and augmented reality training).
+- **Email:** divyakjdivyakj46@gmail.com
+- **LinkedIn:** [linkedin.com/in/divya-kj-818940314](https://www.linkedin.com/in/divya-kj-818940314)
+- **GitHub:** [github.com/divyakj680](https://github.com/divyakj680)

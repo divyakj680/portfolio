@@ -1,5 +1,2 @@
 User-agent: *
 Allow: /
-
-Sitemap: https://myportfolio-livid-gamma-83.vercel.app/sitemap.xml
-
