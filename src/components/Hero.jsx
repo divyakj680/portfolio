@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useRef } from 'react'
 import AOS from 'aos'
 import 'aos/dist/aos.css'
 import heroVideo from '../assets/hero/hero.mp4'
@@ -7,8 +7,6 @@ import { heroContent, socialLinks } from '../data/portfolioData'
 
 const Hero = ({ isPreloaderDone }) => {
   const videoRef = useRef(null)
-  const [isAudioActive, setIsAudioActive] = useState(false)
-  const [audioBlocked, setAudioBlocked] = useState(false)
 
   // Initialize AOS
   useEffect(() => {
@@ -22,25 +20,7 @@ const Hero = ({ isPreloaderDone }) => {
     }
   }, [])
 
-  // Explicit audio playback trigger
-  const playVoiceGreeting = () => {
-    const video = videoRef.current
-    if (!video) return
-    video.currentTime = 0
-    video.muted = false
-    video.volume = 1.0
-    video
-      .play()
-      .then(() => {
-        setIsAudioActive(true)
-        setAudioBlocked(false)
-      })
-      .catch((err) => {
-        console.warn('Playback error:', err)
-      })
-  }
-
-  // Start video ONLY after preloader loading finishes
+  // Start video directly with audio after preloader finishes
   useEffect(() => {
     const video = videoRef.current
     if (!video) return
@@ -51,7 +31,7 @@ const Hero = ({ isPreloaderDone }) => {
       return
     }
 
-    // Preloader is done — attempt unmuted playback from 0:00
+    // Direct playback with audio from 0:00
     video.currentTime = 0
     video.volume = 1.0
     video.muted = false
@@ -59,35 +39,24 @@ const Hero = ({ isPreloaderDone }) => {
     video
       .play()
       .then(() => {
-        setIsAudioActive(true)
-        setAudioBlocked(false)
+        // Video playing directly with audio
       })
       .catch(() => {
-        // Browser blocked audio autoplay without prior user interaction
-        setAudioBlocked(true)
-        setIsAudioActive(false)
+        // If browser autoplay policy requires a user gesture first,
+        // play muted so mouth moves, and unmute on first user click or tap anywhere
         video.muted = true
         video.play().catch(() => {})
 
-        // The instant the user clicks or taps anywhere on the page, restart with audio!
-        const triggerAudioOnFirstGesture = () => {
+        const enableAudioOnGesture = () => {
           if (videoRef.current) {
-            videoRef.current.currentTime = 0
             videoRef.current.muted = false
             videoRef.current.volume = 1.0
-            videoRef.current
-              .play()
-              .then(() => {
-                setIsAudioActive(true)
-                setAudioBlocked(false)
-              })
-              .catch(() => {})
           }
         }
 
-        window.addEventListener('click', triggerAudioOnFirstGesture, { once: true })
-        window.addEventListener('touchstart', triggerAudioOnFirstGesture, { once: true })
-        window.addEventListener('keydown', triggerAudioOnFirstGesture, { once: true })
+        window.addEventListener('click', enableAudioOnGesture, { once: true })
+        window.addEventListener('touchstart', enableAudioOnGesture, { once: true })
+        window.addEventListener('keydown', enableAudioOnGesture, { once: true })
       })
   }, [isPreloaderDone])
 
@@ -96,12 +65,8 @@ const Hero = ({ isPreloaderDone }) => {
       id="home"
       className="relative w-full h-screen overflow-hidden bg-[#ff2a2a]"
     >
-      {/* Background Talking Video - Tap video or button to hear voice */}
-      <div
-        onClick={playVoiceGreeting}
-        title="Tap to hear Divya's introduction"
-        className="absolute inset-0 w-full h-full z-0 select-none overflow-hidden flex items-center justify-end cursor-pointer"
-      >
+      {/* Background Talking Video - Plays directly without buttons */}
+      <div className="absolute inset-0 w-full h-full z-0 select-none overflow-hidden flex items-center justify-end">
         <video
           ref={videoRef}
           className="w-full h-full object-contain object-top md:object-right select-none"
@@ -109,7 +74,6 @@ const Hero = ({ isPreloaderDone }) => {
           preload="auto"
           poster={heroPoster}
           onEnded={() => {
-            setIsAudioActive(false)
             const video = videoRef.current
             if (video) {
               video.pause()
@@ -212,134 +176,95 @@ const Hero = ({ isPreloaderDone }) => {
               className="text-white/80 hover:text-white transition-colors"
             >
               <svg className="w-5 h-5 fill-current" viewBox="0 0 24 24" aria-hidden="true">
-                <path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.441-1.44z" />
+                <path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z" />
+              </svg>
+            </a>
+          </div>
+
+          {/* Heading */}
+          <h1
+            data-aos="fade-up"
+            className="text-white text-3xl md:text-5xl font-bold leading-tight"
+          >
+            {heroContent.greeting}, <br />
+            <span className="text-black">{heroContent.titleHighlight}</span>
+          </h1>
+
+          {/* Subtitle */}
+          <p
+            data-aos="fade-up"
+            data-aos-delay="200"
+            className="text-white text-sm md:text-lg font-semibold max-w-md mt-4 leading-relaxed"
+          >
+            {heroContent.subtitle}
+          </p>
+
+          {/* Pill Buttons */}
+          <div
+            data-aos="fade-up"
+            data-aos-delay="400"
+            className="flex flex-wrap gap-4 mt-6 items-center"
+          >
+            {/* Primary CTA */}
+            <a
+              href={heroContent.ctaPrimary.href}
+              className="px-6 py-3 rounded-full bg-white text-black font-semibold transition-all duration-300 hover:scale-105 inline-block shadow-lg"
+            >
+              {heroContent.ctaPrimary.text}
+            </a>
+
+            {/* Secondary CTA */}
+            <a
+              href={heroContent.ctaSecondary.href}
+              className="px-6 py-3 rounded-full bg-black/40 text-white border border-white/30 backdrop-blur-md font-semibold transition-all duration-300 hover:bg-black/60 inline-block"
+            >
+              {heroContent.ctaSecondary.text}
+            </a>
+
+            {/* Resume Download CTA */}
+            {heroContent.ctaResume && heroContent.ctaResume.href && (
+              <a
+                href={heroContent.ctaResume.href}
+                download
+                className="px-6 py-3 rounded-full bg-transparent text-white border border-white/50 font-semibold transition-all duration-300 hover:bg-white/10 inline-flex items-center space-x-2"
+              >
+                <svg
+                  className="w-4 h-4 fill-none stroke-current"
+                  viewBox="0 0 24 24"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                >
+                  <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                  <polyline points="7 10 12 15 17 10" />
+                  <line x1="12" y1="15" x2="12" y2="3" />
+                </svg>
+                <span>{heroContent.ctaResume.text}</span>
+              </a>
+            )}
+          </div>
+        </div>
+      </div>
+
+      {/* Bouncing Down-Arrow Scroll Indicator */}
+      <div className="hidden md:block absolute bottom-6 left-1/2 -translate-x-1/2 z-20 animate-bounce pointer-events-none text-white">
+        <a href="#about" aria-label="Scroll down to about section" className="pointer-events-auto">
+          <svg
+            className="w-6 h-6 text-white"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth="2"
+              d="M19 14l-7 7m0 0l-7-7m7 7V3"
+            />
           </svg>
         </a>
       </div>
-
-      {/* Heading */}
-      <h1
-        data-aos="fade-up"
-        className="text-white text-3xl md:text-5xl font-bold leading-tight"
-      >
-        {heroContent.greeting}, <br />
-        <span className="text-black">{heroContent.titleHighlight}</span>
-      </h1>
-
-      {/* Subtitle */}
-      <p
-        data-aos="fade-up"
-        data-aos-delay="200"
-        className="text-white text-sm md:text-lg font-semibold max-w-md mt-4 leading-relaxed"
-      >
-        {heroContent.subtitle}
-      </p>
-
-      {/* Pill Buttons */}
-      <div
-        data-aos="fade-up"
-        data-aos-delay="400"
-        className="flex flex-wrap gap-4 mt-6 items-center"
-      >
-        {/* Primary CTA */}
-        <a
-          href={heroContent.ctaPrimary.href}
-          className="px-6 py-3 rounded-full bg-white text-black font-semibold transition-all duration-300 hover:scale-105 inline-block shadow-lg"
-        >
-          {heroContent.ctaPrimary.text}
-        </a>
-
-        {/* Secondary CTA */}
-        <a
-          href={heroContent.ctaSecondary.href}
-          className="px-6 py-3 rounded-full bg-black/40 text-white border border-white/30 backdrop-blur-md font-semibold transition-all duration-300 hover:bg-black/60 inline-block"
-        >
-          {heroContent.ctaSecondary.text}
-        </a>
-
-        {/* Voice Greeting Play/Replay button */}
-        <button
-          onClick={playVoiceGreeting}
-          type="button"
-          aria-label="Play Voice Introduction"
-          className="px-6 py-3 rounded-full bg-black/60 hover:bg-black text-white border border-white/40 backdrop-blur-md font-semibold transition-all duration-300 hover:scale-105 inline-flex items-center space-x-2 shadow-lg cursor-pointer"
-        >
-          {isAudioActive ? (
-            <>
-              <span className="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-pulse" />
-              <span>🔊 Voice Playing (Replay)</span>
-            </>
-          ) : (
-            <>
-              <span className="w-2.5 h-2.5 rounded-full bg-amber-400 animate-ping" />
-              <span>🔊 Hear Voice Greeting</span>
-            </>
-          )}
-        </button>
-
-        {/* Resume Download CTA */}
-        {heroContent.ctaResume && heroContent.ctaResume.href && (
-          <a
-            href={heroContent.ctaResume.href}
-            download
-            className="px-6 py-3 rounded-full bg-transparent text-white border border-white/50 font-semibold transition-all duration-300 hover:bg-white/10 inline-flex items-center space-x-2"
-          >
-            <svg
-              className="w-4 h-4 fill-none stroke-current"
-              viewBox="0 0 24 24"
-              strokeWidth="2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            >
-              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
-              <polyline points="7 10 12 15 17 10" />
-              <line x1="12" y1="15" x2="12" y2="3" />
-            </svg>
-            <span>{heroContent.ctaResume.text}</span>
-          </a>
-        )}
-      </div>
-    </div>
-  </div>
-
-  {/* Subtle Floating Banner when Browser blocks unmuted autoplay */}
-  {audioBlocked && (
-    <div
-      data-aos="fade-up"
-      onClick={playVoiceGreeting}
-      className="absolute bottom-16 md:bottom-8 right-6 md:right-10 z-30 bg-black/85 hover:bg-black text-white px-5 py-3 rounded-2xl border border-white/20 backdrop-blur-md shadow-2xl cursor-pointer flex items-center space-x-3 transition-all hover:scale-105 animate-pulse"
-    >
-      <div className="w-8 h-8 rounded-full bg-red-600 flex items-center justify-center shrink-0">
-        <svg className="w-4 h-4 fill-white" viewBox="0 0 24 24">
-          <path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02zM14 3.23v2.06c2.89.86 5 3.54 5 6.71s-2.11 5.85-5 6.71v2.06c4.01-.91 7-4.49 7-8.77s-2.99-7.86-7-8.77z"/>
-        </svg>
-      </div>
-      <div>
-        <p className="text-xs font-bold leading-tight">Tap to hear Divya speak</p>
-        <p className="text-[10px] text-white/70">Audio was muted by browser</p>
-      </div>
-    </div>
-  )}
-
-  {/* Bouncing Down-Arrow Scroll Indicator */}
-  <div className="hidden md:block absolute bottom-6 left-1/2 -translate-x-1/2 z-20 animate-bounce pointer-events-none text-white">
-    <a href="#about" aria-label="Scroll down to about section" className="pointer-events-auto">
-      <svg
-        className="w-6 h-6 text-white"
-        fill="none"
-        stroke="currentColor"
-        viewBox="0 0 24 24"
-      >
-        <path
-          strokeLinecap="round"
-          strokeLinejoin="round"
-          strokeWidth="2"
-          d="M19 14l-7 7m0 0l-7-7m7 7V3"
-        />
-      </svg>
-    </a>
-  </div>
-</section>
+    </section>
   )
 }
 
