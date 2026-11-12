@@ -96,8 +96,12 @@ const Hero = ({ isPreloaderDone }) => {
       id="home"
       className="relative w-full h-screen overflow-hidden bg-[#ff2a2a]"
     >
-      {/* Background Talking Video - Starts cleanly from 0:00 only after preloader finishes */}
-      <div className="absolute inset-0 w-full h-full z-0 select-none overflow-hidden flex items-center justify-end">
+      {/* Background Talking Video - Tap video or button to hear voice */}
+      <div
+        onClick={playVoiceGreeting}
+        title="Tap to hear Divya's introduction"
+        className="absolute inset-0 w-full h-full z-0 select-none overflow-hidden flex items-center justify-end cursor-pointer"
+      >
         <video
           ref={videoRef}
           className="w-full h-full object-contain object-top md:object-right select-none"
@@ -112,6 +116,7 @@ const Hero = ({ isPreloaderDone }) => {
             }
           }}
         >
+          <source src="/hero.mp4" type="video/mp4" />
           <source src={heroVideo} type="video/mp4" />
         </video>
       </div>
