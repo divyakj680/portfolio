@@ -89,8 +89,8 @@ const ProjectCard = ({ project, aosDelay }) => {
             </a>
           )}
 
-          {/* Live Demo or Coming Soon button */}
-          {project.links?.demo && project.links.demo.trim() !== '' ? (
+          {/* Live Demo button (only rendered if a live demo link exists) */}
+          {project.links?.demo && project.links.demo.trim() !== '' && (
             <a
               href={project.links.demo}
               target="_blank"
@@ -100,14 +100,6 @@ const ProjectCard = ({ project, aosDelay }) => {
               <span>Live Demo</span>
               <ExternalLinkIcon />
             </a>
-          ) : (
-            <button
-              type="button"
-              disabled
-              className="inline-flex items-center space-x-2 px-5 py-2.5 rounded-full bg-white/5 border border-white/10 text-white/40 font-semibold text-sm cursor-not-allowed select-none"
-            >
-              <span>Demo Coming Soon</span>
-            </button>
           )}
         </div>
       </div>
